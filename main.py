@@ -76,10 +76,12 @@ async def leaderboard(context, num_players: int = 20):
     await context.send(result)
 
 @bot.command(name='rank', help='Responds with the current ranking of the supplied player')
-async def leaderboard(context, player_name):
+async def leaderboard(context, *name):
     if context.channel.name != 'advent-of-code':
         return
-    print("Rank requested")
+    player_name = ' '.join(name)
+
+    print("Rank requested for: ", player_name)
     players = get_players()
 
     players = [(i, player) for i, player in enumerate(players) if player[0].upper() == player_name.upper()]
@@ -96,5 +98,4 @@ async def leaderboard(context, player_name):
         result = 'Whoops, it looks like I can\'t find that player, are you sure they\'re playing?'
     await context.send(result)
 bot.run(TOKEN)
-
 
