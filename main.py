@@ -1,5 +1,6 @@
 import os
 import time
+import datetime
 import json
 import urllib.request
 from dotenv import load_dotenv
@@ -75,6 +76,7 @@ async def leaderboard(context, num_players: int = 20):
         result = 'Whoops, it looks like that leaderboard won\'t fit in one message, please reduce the number of rankings required'
     await context.send(result)
 
+
 @bot.command(name='rank', help='Responds with the current ranking of the supplied player')
 async def leaderboard(context, *name):
     if context.channel.name != 'advent-of-code':
@@ -97,5 +99,30 @@ async def leaderboard(context, *name):
     else:
         result = 'Whoops, it looks like I can\'t find that player, are you sure they\'re playing?'
     await context.send(result)
+
+
+@bot.command(name='keen', help='Responds with today\'s keenest bean')
+async def keen(context):
+    if context.channel.name != 'advent-of-code':
+        return
+    print("Keenest bean requested")
+
+    # Get list of players with max stars
+    all_players = get_players()
+    max_stars = max(all_players, key=lambda t: t[2])[2]
+    players = [(i, player) for i, player in enumerate(all_players) if player[2] == max_stars]
+
+    # Get first person who got the max stars
+    i, player = min(players, key=lambda t: t[1][3])
+
+    result = 'Today\'s keenest bean is:\n```'
+    result += str_format.format(rank=i+1,
+                                name=player[0], name_pad=len(player[0]),
+                                points=player[1], points_len=len(str(player[1])),
+                                stars=player[2],
+                                star_time=time.strftime('%H:%M %d/%m', time.localtime(player[3])))
+    result += '```'
+    await context.send(result)
+
 bot.run(TOKEN)
 
