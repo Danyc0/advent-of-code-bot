@@ -78,7 +78,7 @@ async def leaderboard(context, num_players: int = 20):
 
 
 @bot.command(name='rank', help='Responds with the current ranking of the supplied player')
-async def leaderboard(context, *name):
+async def rank(context, *name):
     if context.channel.name != 'advent-of-code':
         return
     player_name = ' '.join(name)
