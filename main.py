@@ -12,7 +12,9 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 URL = os.getenv('AOC_URL')
 COOKIE = os.getenv('AOC_COOKIE')
 
+# Advent Of Code request that you don't poll their API more often than once every 15 minutes
 POLL_MINS = 15
+
 PLAYER_STR_FORMAT = '{rank:2}) {name:{name_pad}} ({points:{points_pad}}) {stars}* ({star_time})\n'
 
 
@@ -22,7 +24,7 @@ def get_players():
     now = time.time()
     debug_msg = 'Got Leaderboard From Cache'
 
-    # If the cache is more than POLL_MINS old, get refresh the cache, else use the cache
+    # If the cache is more than POLL_MINS old, refresh the cache, else use the cache
     if not players_cache or (now - players_cache[0]) > (60*POLL_MINS):
         debug_msg = 'Got Leaderboard Fresh'
 
