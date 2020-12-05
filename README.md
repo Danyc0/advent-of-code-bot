@@ -14,3 +14,7 @@ You'll need to set three environment variables:
 * AOC_COOKIE -> Your Advent Of Code session cookie so the bot has permission to view your private leaderboard (You can extract this from your web browser after signing in to AoC)
 
 You can put these in a .env file in the repo directory as it uses dotenv (See [here](https://pypi.org/project/python-dotenv/) for usage) so you don't have to keep them in your environment
+
+## Contributions
+
+In short, patches welcome. If you raise a PR, I'll test it and (probably) merge it
