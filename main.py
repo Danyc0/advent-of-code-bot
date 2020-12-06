@@ -17,20 +17,8 @@ POLL_MINS = 15
 
 PLAYER_STR_FORMAT = '{rank:2}) {name:{name_pad}} ({points:{points_pad}}) {stars}* ({star_time})\n'
 
-def insertion_sort(data_array):
-    
-    for index in range(1, len(data_array)):
-        current_data = data_array[index]
-        position = index
-        
-        while position > 0 and data_array[position - 1][1] > current_data[1]:
-            
-            data_array[position] = data_array[position - 1]
-            position = position - 1
-        
-        data_array[position] = current_data
-        
-    return data_array
+def toSort(data):
+    return data[1]
 
 
 def find_name(to_find, to_search):
@@ -172,7 +160,7 @@ async def keen(context):
     await context.send(result)
 
 
-@bot.command(name='daily', help='Will give the Daily Leaderboard for specified date')
+@bot.command(name='daily', help='Will give the daily leaderboard for specified data')
 async def daily(context, day):
     # Only respond if used in a channel called 'advent-of-code'
     if context.channel.name != 'advent-of-code':
@@ -184,12 +172,8 @@ async def daily(context, day):
 
     # Goes through all the players checking if they have data for that day and if they do adding to players_days
     for player in players:
-        i = 0
         #This checks they have day data
-        for item in player:
-            print(i, item)
-            i += 1
-        if (i != 5):
+        if (len(player) <= 4):
             pass
         else:
             if (day in player[4].keys()):
@@ -204,50 +188,42 @@ async def daily(context, day):
     for player_day in players_day:
         if ('1' in player_day[4][day].keys()):
             
-            first_star.append([player_day[0], int(player_day[4][day]['1']['get_star_ts'])])
+            first_star.append((player_day[0], int(player_day[4][day]['1']['get_star_ts'])))
 
         if ('2' in player_day[4][day].keys()):
-            second_star.append([player_day[0], int(player_day[4][day]['2']['get_star_ts'])])
+            second_star.append((player_day[0], int(player_day[4][day]['2']['get_star_ts'])))
     
     #Sorts the two lists on timestamps.(Used insertion as lists aren't too large and easy to change to order on correct data)
-    first_star_sorted = insertion_sort(first_star)
-    second_star_sorted = insertion_sort(second_star)
+    first_star.sort(key=toSort)
+    second_star.sort(key=toSort)
 
-    print(first_star_sorted)
-    print("\n\n")
-    print(second_star_sorted)
-    print("\n\n")
-    final_table_unsorted = []
+    final_table = []
 
     #Adds all the people from first list
-    for i, player in enumerate(first_star_sorted):#
-        final_table_unsorted.append([player[0], (len(players) - i)])
+    for i, player in enumerate(first_star):#
+        final_table.append((player[0], (len(players) - i)))
     
-    print(final_table_unsorted)
-    print("\n\n")
+    
 
     #Updates the list with all the people who got the second star and their score
-    for i, player in enumerate(second_star_sorted):
-        index = find_name(player[0], final_table_unsorted)
-        if (index == -1):
-            final_table_unsorted.append([player[0], (len(players) - i)])
-        else:
-            to_change = final_table_unsorted[index]
-            final_table_unsorted[index] = [to_change[0], (to_change[1] + (len(second_star_sorted) - i))]
+    for i, player in enumerate(second_star):
+        index = find_name(player[0], final_table)
+        to_change = final_table[index]
+        final_table[index] = (to_change[0], (to_change[1] + (len(second_star) - i)))
     
     #Sorts the table
-    final_table_sorted = insertion_sort(final_table_unsorted)
+    final_table.sort(reverse=True,key=toSort)
 
-    print(final_table_sorted)
+    print(final_table)
 
     #Outputs data
     result = ""
-    if (final_table_sorted == []):
+    if not final_table:
         result = "```No Scores for this day yet```"
     else:
         result = "```"
 
-        for place, player in enumerate(final_table_sorted[::-1]):
+        for place, player in enumerate(final_table):
             result += str(place+1) + ": " + str(player[0]) + " with " + str(player[1]) +" point(s)\n"
         result += "```"
 
