@@ -17,6 +17,29 @@ POLL_MINS = 15
 
 PLAYER_STR_FORMAT = '{rank:2}) {name:{name_pad}} ({points:{points_pad}}) {stars}* ({star_time})\n'
 
+def insertion_sort(data_array):
+    
+    for index in range(1, len(data_array)):
+        current_data = data_array[index]
+        position = index
+        
+        while position > 0 and data_array[position - 1][1] > current_data[1]:
+            
+            data_array[position] = data_array[position - 1]
+            position = position - 1
+        
+        data_array[position] = current_data
+        
+    return data_array
+
+
+def find_name(to_find, to_search):
+
+    for i, data in enumerate(to_search):
+        if (data[0] == to_find):
+            return i
+
+    return -1
 
 players_cache = ()
 def get_players():
@@ -39,7 +62,8 @@ def get_players():
         players = [(data['members'][member]['name'],
                     data['members'][member]['local_score'],
                     data['members'][member]['stars'],
-                    int(data['members'][member]['last_star_ts'])) for member in data['members']]
+                    int(data['members'][member]['last_star_ts']),
+                    data['members'][member]['completion_day_level']) for member in data['members']] ##This is the data for all the days
 
         # Players that are anonymous have no name in the JSON, so give them a default name "Anon"
         for i, player in enumerate(players):
@@ -148,5 +172,85 @@ async def keen(context):
     await context.send(result)
 
 
-bot.run(TOKEN)
+@bot.command(name='daily', help='Will give the Daily Leaderboard for specified date')
+async def daily(context, day):
+    # Only respond if used in a channel called 'advent-of-code'
+    if context.channel.name != 'advent-of-code':
+        return
 
+    players = get_players()
+
+    players_day = []
+
+    # Goes through all the players checking if they have data for that day and if they do adding to players_days
+    for player in players:
+        i = 0
+        #This checks they have day data
+        for item in player:
+            print(i, item)
+            i += 1
+        if (i != 5):
+            pass
+        else:
+            if (day in player[4].keys()):
+                players_day.append(player)
+            
+
+    #players_day has all people who have finished one star for that day
+    first_star = []
+    second_star = []
+
+    # Adds all the players which has 
+    for player_day in players_day:
+        if ('1' in player_day[4][day].keys()):
+            
+            first_star.append([player_day[0], int(player_day[4][day]['1']['get_star_ts'])])
+
+        if ('2' in player_day[4][day].keys()):
+            second_star.append([player_day[0], int(player_day[4][day]['2']['get_star_ts'])])
+    
+    #Sorts the two lists on timestamps.(Used insertion as lists aren't too large and easy to change to order on correct data)
+    first_star_sorted = insertion_sort(first_star)
+    second_star_sorted = insertion_sort(second_star)
+
+    print(first_star_sorted)
+    print("\n\n")
+    print(second_star_sorted)
+    print("\n\n")
+    final_table_unsorted = []
+
+    #Adds all the people from first list
+    for i, player in enumerate(first_star_sorted):#
+        final_table_unsorted.append([player[0], (len(players) - i)])
+    
+    print(final_table_unsorted)
+    print("\n\n")
+
+    #Updates the list with all the people who got the second star and their score
+    for i, player in enumerate(second_star_sorted):
+        index = find_name(player[0], final_table_unsorted)
+        if (index == -1):
+            final_table_unsorted.append([player[0], (len(players) - i)])
+        else:
+            to_change = final_table_unsorted[index]
+            final_table_unsorted[index] = [to_change[0], (to_change[1] + (len(second_star_sorted) - i))]
+    
+    #Sorts the table
+    final_table_sorted = insertion_sort(final_table_unsorted)
+
+    print(final_table_sorted)
+
+    #Outputs data
+    result = ""
+    if (final_table_sorted == []):
+        result = "```No Scores for this day yet```"
+    else:
+        result = "```"
+
+        for place, player in enumerate(final_table_sorted[::-1]):
+            result += str(place+1) + ": " + str(player[0]) + " with " + str(player[1]) +" point(s)\n"
+        result += "```"
+
+    await context.send(result)
+
+bot.run(TOKEN)
