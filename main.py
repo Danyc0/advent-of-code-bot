@@ -17,18 +17,6 @@ POLL_MINS = 15
 
 PLAYER_STR_FORMAT = '{rank:2}) {name:{name_pad}} ({points:{points_pad}}) {stars}* ({star_time})\n'
 
-def toSort(data):
-    return data[1]
-
-
-def find_name(to_find, to_search):
-
-    for i, data in enumerate(to_search):
-        if (data[0] == to_find):
-            return i
-
-    return -1
-
 players_cache = ()
 def get_players():
     global players_cache
@@ -56,7 +44,7 @@ def get_players():
         # Players that are anonymous have no name in the JSON, so give them a default name "Anon"
         for i, player in enumerate(players):
             if not player[0]:
-                players[i] = ('Anon', player[1], player[2], player[3])
+                players[i] = ('Anon', player[1], player[2], player[3], player[4])
 
         players.sort(key=lambda tup: tup[1], reverse=True)
         players_cache = (now, players)
@@ -172,12 +160,8 @@ async def daily(context, day):
 
     # Goes through all the players checking if they have data for that day and if they do adding to players_days
     for player in players:
-        #This checks they have day data
-        if (len(player) <= 4):
-            pass
-        else:
-            if (day in player[4].keys()):
-                players_day.append(player)
+        if day in player[4]:
+            players_day.append(player)
             
 
     #players_day has all people who have finished one star for that day
@@ -186,16 +170,16 @@ async def daily(context, day):
 
     # Adds all the players which has 
     for player_day in players_day:
-        if ('1' in player_day[4][day].keys()):
+        if '1' in player_day[4][day]:
             
             first_star.append((player_day[0], int(player_day[4][day]['1']['get_star_ts'])))
 
-        if ('2' in player_day[4][day].keys()):
+        if '2' in player_day[4][day]:
             second_star.append((player_day[0], int(player_day[4][day]['2']['get_star_ts'])))
     
     #Sorts the two lists on timestamps.(Used insertion as lists aren't too large and easy to change to order on correct data)
-    first_star.sort(key=toSort)
-    second_star.sort(key=toSort)
+    first_star.sort(key=lambda data : data[1])
+    second_star.sort(key=lambda data : data[1])
 
     final_table = []
 
@@ -207,12 +191,12 @@ async def daily(context, day):
 
     #Updates the list with all the people who got the second star and their score
     for i, player in enumerate(second_star):
-        index = find_name(player[0], final_table)
+        index = [i for i, item in enumerate(final_table) if item[0] == player[0]][0]
         to_change = final_table[index]
         final_table[index] = (to_change[0], (to_change[1] + (len(second_star) - i)))
     
     #Sorts the table
-    final_table.sort(reverse=True,key=toSort)
+    final_table.sort(reverse=True,key=lambda data : data[1])
 
     print(final_table)
 
@@ -227,6 +211,9 @@ async def daily(context, day):
             result += str(place+1) + ": " + str(player[0]) + " with " + str(player[1]) +" point(s)\n"
         result += "```"
 
+    if len(result) > 2000:
+        result = "```Tell Dan that this needs updating!```"
+        
     await context.send(result)
 
 bot.run(TOKEN)
