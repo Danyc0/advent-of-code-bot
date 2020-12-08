@@ -17,11 +17,6 @@ POLL_MINS = 15
 
 PLAYER_STR_FORMAT = '{rank:2}) {name:{name_pad}} ({points:{points_pad}}) {stars}* ({star_time})\n'
 
-def find_name(to_find, to_search):
-    return 
-
-    return -1
-
 players_cache = ()
 def get_players():
     global players_cache
@@ -164,37 +159,37 @@ async def daily(context, day):
     # Goes through all the players checking if they have data for that day and if they do adding to players_days
     players_day = [player for player in players if day in player[4]]
  
-    #players_day has all people who have finished one star for that day
+    # Players_day has all people who have finished one star for that day
     first_star = []
     second_star = []
 
-    # Adds all the players which has stars into respective lists
+    # Adds all the players which has stars the into respective lists
     for player_day in players_day:
         if '1' in player_day[4][day]:
             first_star.append((player_day[0], int(player_day[4][day]['1']['get_star_ts'])))
         if '2' in player_day[4][day]:
             second_star.append((player_day[0], int(player_day[4][day]['2']['get_star_ts'])))
     
-    #Sorts the two lists on timestamps.(Used insertion as lists aren't too large and easy to change to order on correct data)
+    # Sorts the two lists on timestamps.(Used insertion as lists aren't too large and easy to change to order on correct data)
     first_star.sort(key=lambda data : data[1])
     second_star.sort(key=lambda data : data[1])
 
     final_table = []
 
-    #Adds all the people from first list
-    for i, player in enumerate(first_star):#
+    # Adds all the people from first list
+    for i, player in enumerate(first_star):
         final_table.append((player[0], (len(players) - i), player[1], 2))  
     
-    #Updates the list with all the people who got the second star and their score
+    # Updates the list with all the people who got the second star and their score
     for i, player in enumerate(second_star):
         index = [i for i, item in enumerate(final_table) if item[0] == player[0]][0]
         to_change = final_table[index]
         final_table[index] = (to_change[0], (to_change[1] + (len(second_star) - i)), player[1], 4)
     
-    #Sorts the table
+    # Sorts the table
     final_table.sort(reverse=True,key=lambda data : data[1])
 
-    #Outputs data
+    # Outputs data
     result = ""
     if not final_table:
         result = "```No Scores for this day yet```"
