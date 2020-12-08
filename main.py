@@ -17,6 +17,7 @@ POLL_MINS = 15
 
 PLAYER_STR_FORMAT = '{rank:2}) {name:{name_pad}} ({points:{points_pad}}) {stars}* ({star_time})\n'
 
+
 players_cache = ()
 def get_players():
     global players_cache
