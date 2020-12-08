@@ -164,7 +164,6 @@ async def daily(context, day):
     # Goes through all the players checking if they have data for that day and if they do adding to players_days
     players_day = [player for player in players if day in player[4]]
  
-
     #players_day has all people who have finished one star for that day
     first_star = []
     second_star = []
@@ -211,7 +210,6 @@ async def daily(context, day):
                                         points=player[1], points_pad=max_points_len,
                                         stars=player[3],
                                         star_time=time.strftime('%H:%M %d/%m', time.localtime(player[2])))
-
 
     if len(result) > 2000:
         result = "```"
