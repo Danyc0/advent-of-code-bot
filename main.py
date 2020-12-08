@@ -150,74 +150,80 @@ async def keen(context):
 
 
 @bot.command(name='daily', help='Will give the daily leaderboard for specified day')
-async def daily(context, day):
+async def daily(context, input):
     # Only respond if used in a channel called 'advent-of-code'
     if context.channel.name != 'advent-of-code':
         return
-
-    players = get_players()
-
-    # Goes through all the players checking if they have data for that day and if they do adding to players_days
-    players_day = [player for player in players if day in player[4]]
- 
-    # Players_day has all people who have finished one star for that day
-    first_star = []
-    second_star = []
-
-    # Adds all the players which has stars the into respective lists
-    for player_day in players_day:
-        if '1' in player_day[4][day]:
-            first_star.append((player_day[0], int(player_day[4][day]['1']['get_star_ts'])))
-        if '2' in player_day[4][day]:
-            second_star.append((player_day[0], int(player_day[4][day]['2']['get_star_ts'])))
     
-    # Sorts the two lists on timestamps.(Used insertion as lists aren't too large and easy to change to order on correct data)
-    first_star.sort(key=lambda data : data[1])
-    second_star.sort(key=lambda data : data[1])
+    if input:
+        day = input[0]
+        players = get_players()
 
-    final_table = []
-
-    # Adds all the people from first list
-    for i, player in enumerate(first_star):
-        final_table.append((player[0], (len(players) - i), player[1], 2))  
+        # Goes through all the players checking if they have data for that day and if they do adding to players_days
+        players_day = [player for player in players if day in player[4]]
     
-    # Updates the list with all the people who got the second star and their score
-    for i, player in enumerate(second_star):
-        index = [i for i, item in enumerate(final_table) if item[0] == player[0]][0]
-        to_change = final_table[index]
-        final_table[index] = (to_change[0], (to_change[1] + (len(second_star) - i)), player[1], 4)
-    
-    # Sorts the table
-    final_table.sort(reverse=True,key=lambda data : data[1])
+        # Players_day has all people who have finished one star for that day
+        first_star = []
+        second_star = []
 
-    # Outputs data
-    result = ""
-    if not final_table:
-        result = "```No Scores for this day yet```"
-    else:
-        # Get string lengths for the format string
-        max_name_len = len(max(final_table, key=lambda t: len(t[0]))[0])     
-        max_points_len = len(str((max(players, key=lambda t: len(str(t[1])))[1])))
-        result = "```"
-        for place, player in enumerate(final_table):
+        # Adds all the players which has stars the into respective lists
+        for player_day in players_day:
+            if '1' in player_day[4][day]:
+                first_star.append((player_day[0], int(player_day[4][day]['1']['get_star_ts'])))
+            if '2' in player_day[4][day]:
+                second_star.append((player_day[0], int(player_day[4][day]['2']['get_star_ts'])))
+    
+        # Sorts the two lists on timestamps.(Used insertion as lists aren't too large and easy to change to order on correct data)
+        first_star.sort(key=lambda data : data[1])
+        second_star.sort(key=lambda data : data[1])
+
+        final_table = []
+
+        # Adds all the people from first list
+        for i, player in enumerate(first_star):
+            final_table.append((player[0], (len(players) - i), player[1], 1))  
+    
+        # Updates the list with all the people who got the second star and their score
+        for i, player in enumerate(second_star):
+            index = [i for i, item in enumerate(final_table) if item[0] == player[0]][0]
+            to_change = final_table[index]
+            final_table[index] = (to_change[0], (to_change[1] + (len(second_star) - i)), player[1], 2)
+    
+        # Sorts the table
+        final_table.sort(reverse=True,key=lambda data : data[1])
+
+        # Outputs data
+        result = ""
+        if not final_table:
+            result = "```No Scores for this day yet```"
+        else:
+            # Get string lengths for the format string
+            max_name_len = len(max(final_table, key=lambda t: len(t[0]))[0])     
+            max_points_len = len(str((max(players, key=lambda t: len(str(t[1])))[1])))
+            result = "```"
+            for place, player in enumerate(final_table):
             
-            result += PLAYER_STR_FORMAT.format(rank=place+1,
-                                        name=player[0], name_pad=max_name_len,
-                                        points=player[1], points_pad=max_points_len,
-                                        stars=player[3],
-                                        star_time=time.strftime('%H:%M %d/%m', time.localtime(player[2])))
+                result += PLAYER_STR_FORMAT.format(rank=place+1,
+                                            name=player[0], name_pad=max_name_len,
+                                            points=player[1], points_pad=max_points_len,
+                                            stars=player[3],
+                                            star_time=time.strftime('%H:%M %d/%m', time.localtime(player[2])))
+                
+                # This will output every 10 people.
+                if place % 10 == 9:
+                    result += "```"
+                    await context.send(result)
+                    result = "```"
+            
 
-    if len(result) > 2000:
-        result = "```"
-        for index in range(40):
-            player = final_table[index]
-            result += PLAYER_STR_FORMAT.format(rank=index+1,
-                                        name=player[0], name_pad=max_name_len,
-                                        points=player[1], points_pad=max_points_len,
-                                        stars=player[3],
-                                        star_time=time.strftime('%H:%M %d/%m', time.localtime(player[2])))
+        # This will output the rest of the list
         result += "```"
-        
+
+    else:
+        result = "Whoops you haven't specified which day's leaderboard you want!"        
+
     await context.send(result)
+
+    
 
 bot.run(TOKEN)
