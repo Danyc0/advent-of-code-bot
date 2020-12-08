@@ -17,6 +17,11 @@ POLL_MINS = 15
 
 PLAYER_STR_FORMAT = '{rank:2}) {name:{name_pad}} ({points:{points_pad}}) {stars}* ({star_time})\n'
 
+def find_name(to_find, to_search):
+    return 
+
+    return -1
+
 players_cache = ()
 def get_players():
     global players_cache
@@ -148,7 +153,7 @@ async def keen(context):
     await context.send(result)
 
 
-@bot.command(name='daily', help='Will give the daily leaderboard for specified data')
+@bot.command(name='daily', help='Will give the daily leaderboard for specified day')
 async def daily(context, day):
     # Only respond if used in a channel called 'advent-of-code'
     if context.channel.name != 'advent-of-code':
@@ -156,24 +161,18 @@ async def daily(context, day):
 
     players = get_players()
 
-    players_day = []
-
     # Goes through all the players checking if they have data for that day and if they do adding to players_days
-    for player in players:
-        if day in player[4]:
-            players_day.append(player)
-            
+    players_day = [player for player in players if day in player[4]]
+ 
 
     #players_day has all people who have finished one star for that day
     first_star = []
     second_star = []
 
-    # Adds all the players which has 
+    # Adds all the players which has stars into respective lists
     for player_day in players_day:
         if '1' in player_day[4][day]:
-            
             first_star.append((player_day[0], int(player_day[4][day]['1']['get_star_ts'])))
-
         if '2' in player_day[4][day]:
             second_star.append((player_day[0], int(player_day[4][day]['2']['get_star_ts'])))
     
@@ -185,34 +184,45 @@ async def daily(context, day):
 
     #Adds all the people from first list
     for i, player in enumerate(first_star):#
-        final_table.append((player[0], (len(players) - i)))
+        final_table.append((player[0], (len(players) - i), player[1], 2))  
     
-    
-
     #Updates the list with all the people who got the second star and their score
     for i, player in enumerate(second_star):
         index = [i for i, item in enumerate(final_table) if item[0] == player[0]][0]
         to_change = final_table[index]
-        final_table[index] = (to_change[0], (to_change[1] + (len(second_star) - i)))
+        final_table[index] = (to_change[0], (to_change[1] + (len(second_star) - i)), player[1], 4)
     
     #Sorts the table
     final_table.sort(reverse=True,key=lambda data : data[1])
-
-    print(final_table)
 
     #Outputs data
     result = ""
     if not final_table:
         result = "```No Scores for this day yet```"
     else:
+        # Get string lengths for the format string
+        max_name_len = len(max(final_table, key=lambda t: len(t[0]))[0])     
+        max_points_len = len(str((max(players, key=lambda t: len(str(t[1])))[1])))
         result = "```"
-
         for place, player in enumerate(final_table):
-            result += str(place+1) + ": " + str(player[0]) + " with " + str(player[1]) +" point(s)\n"
-        result += "```"
+            
+            result += PLAYER_STR_FORMAT.format(rank=place+1,
+                                        name=player[0], name_pad=max_name_len,
+                                        points=player[1], points_pad=max_points_len,
+                                        stars=player[3],
+                                        star_time=time.strftime('%H:%M %d/%m', time.localtime(player[2])))
+
 
     if len(result) > 2000:
-        result = "```Tell Dan that this needs updating!```"
+        result = "```"
+        for index in range(40):
+            player = final_table[index]
+            result += PLAYER_STR_FORMAT.format(rank=index+1,
+                                        name=player[0], name_pad=max_name_len,
+                                        points=player[1], points_pad=max_points_len,
+                                        stars=player[3],
+                                        star_time=time.strftime('%H:%M %d/%m', time.localtime(player[2])))
+        result += "```"
         
     await context.send(result)
 
