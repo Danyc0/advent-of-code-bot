@@ -40,7 +40,7 @@ def get_players():
                     data['members'][member]['local_score'],
                     data['members'][member]['stars'],
                     int(data['members'][member]['last_star_ts']),
-                    data['members'][member]['completion_day_level']) for member in data['members']] ##This is the data for all the days
+                    data['members'][member]['completion_day_level']) for member in data['members']] 
 
         # Players that are anonymous have no name in the JSON, so give them a default name "Anon"
         for i, player in enumerate(players):
@@ -150,11 +150,12 @@ async def keen(context):
 
 
 @bot.command(name='daily', help='Will give the daily leaderboard for specified day')
-async def daily(context, day : str = str(time.localtime(time.time())[7] - 335)):
+async def daily(context, day : str = str(datetime.datetime.today().day)):
     # Only respond if used in a channel called 'advent-of-code'
     if context.channel.name != 'advent-of-code':
         return
     
+    print("Daily leaderboard requested for day: ", day)
     players = get_players()
 
     # Goes through all the players checking if they have data for that day and if they do adding to players_days
@@ -193,22 +194,21 @@ async def daily(context, day : str = str(time.localtime(time.time())[7] - 335)):
     # Outputs data
     result = ""
     if not final_table:
-        result = "```No Scores for this day yet```"
+        result = "```No Scores for this day yet"
     else:
-            # Get string lengths for the format string
+        # Get string lengths for the format string
         max_name_len = len(max(final_table, key=lambda t: len(t[0]))[0])     
         max_points_len = len(str((max(players, key=lambda t: len(str(t[1])))[1])))
         result = "```"
         for place, player in enumerate(final_table):
-           
             result += PLAYER_STR_FORMAT.format(rank=place+1,
-                                        name=player[0], name_pad=max_name_len,
-                                        points=player[1], points_pad=max_points_len,
-                                        stars=player[3],
-                                        star_time=time.strftime('%H:%M %d/%m', time.localtime(player[2])))
+                                               name=player[0], name_pad=max_name_len,
+                                               points=player[1], points_pad=max_points_len,
+                                               stars=player[3],
+                                               star_time=time.strftime('%H:%M %d/%m', time.localtime(player[2])))
                 
-                # This will output every 10 people.
-            if place % 10 == 9:
+            # This will output every 10 people.
+            if place % 40 == 39:
                 result += "```"
                 await context.send(result)
                 result = "```"
@@ -216,9 +216,9 @@ async def daily(context, day : str = str(time.localtime(time.time())[7] - 335)):
 
     # This will output the rest of the list
     result += "```" 
+    if result != "``````":
 
-    await context.send(result)
+        await context.send(result)
 
-    
 
 bot.run(TOKEN)
