@@ -150,7 +150,8 @@ async def keen(context):
 
 
 @bot.command(name='daily', help='Will give the daily leaderboard for specified day')
-async def daily(context, day : str = str(datetime.datetime.today().day)):
+async def daily(context, day : str = str((datetime.datetime.today() - datetime.timedelta(hours=5)).day)):
+    # The default input is whatever day's competition has just come out.  SO at 2AM will still show previous day's leaderboard
     # Only respond if used in a channel called 'advent-of-code'
     if context.channel.name != 'advent-of-code':
         return
@@ -198,7 +199,7 @@ async def daily(context, day : str = str(datetime.datetime.today().day)):
     else:
         # Get string lengths for the format string
         max_name_len = len(max(final_table, key=lambda t: len(t[0]))[0])     
-        max_points_len = len(str((max(players, key=lambda t: len(str(t[1])))[1])))
+        max_points_len = len(str((max(final_table, key=lambda t: len(str(t[1])))[1])))
         result = "```"
         for place, player in enumerate(final_table):
             result += PLAYER_STR_FORMAT.format(rank=place+1,
@@ -207,7 +208,7 @@ async def daily(context, day : str = str(datetime.datetime.today().day)):
                                                stars=player[3],
                                                star_time=time.strftime('%H:%M %d/%m', time.localtime(player[2])))
                 
-            # This will output every 10 people.
+            # This will output every 40 people.
             if place % 40 == 39:
                 result += "```"
                 await context.send(result)
@@ -217,7 +218,6 @@ async def daily(context, day : str = str(datetime.datetime.today().day)):
     # This will output the rest of the list
     result += "```" 
     if result != "``````":
-
         await context.send(result)
 
 
