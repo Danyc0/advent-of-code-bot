@@ -151,7 +151,7 @@ async def keen(context):
 
 @bot.command(name='daily', help='Will give the daily leaderboard for specified day')
 async def daily(context, day : str = str((datetime.datetime.today() - datetime.timedelta(hours=5)).day)):
-    # The default day is whatever day's challenge has just come out.  So at 4.59AM UTC will still show previous day's leaderboard
+    # The default day is whatever day's challenge has just come out. So at 4.59AM UTC will still show previous day's leaderboard
     # Only respond if used in a channel called 'advent-of-code'
     if context.channel.name != 'advent-of-code':
         return
