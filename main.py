@@ -151,7 +151,7 @@ async def keen(context):
 
 @bot.command(name='daily', help='Will give the daily leaderboard for specified day')
 async def daily(context, day : str = str((datetime.datetime.today() - datetime.timedelta(hours=5)).day)):
-    # The default input is whatever day's competition has just come out.  SO at 2AM will still show previous day's leaderboard
+    # The default day is whatever day's challenge has just come out.  So at 4.59AM UTC will still show previous day's leaderboard
     # Only respond if used in a channel called 'advent-of-code'
     if context.channel.name != 'advent-of-code':
         return
@@ -173,7 +173,7 @@ async def daily(context, day : str = str((datetime.datetime.today() - datetime.t
         if '2' in player_day[4][day]:
             second_star.append((player_day[0], int(player_day[4][day]['2']['get_star_ts'])))
     
-    # Sorts the two lists on timestamps.(Used insertion as lists aren't too large and easy to change to order on correct data)
+    # Sorts the two lists on timestamps
     first_star.sort(key=lambda data : data[1])
     second_star.sort(key=lambda data : data[1])
 
@@ -187,7 +187,7 @@ async def daily(context, day : str = str((datetime.datetime.today() - datetime.t
     for i, player in enumerate(second_star):
         index = [i for i, item in enumerate(final_table) if item[0] == player[0]][0]
         to_change = final_table[index]
-        final_table[index] = (to_change[0], (to_change[1] + (len(second_star) - i)), player[1], 2)
+        final_table[index] = (to_change[0], (to_change[1] + (len(players) - i)), player[1], 2)
     
     # Sorts the table
     final_table.sort(reverse=True,key=lambda data : data[1])
