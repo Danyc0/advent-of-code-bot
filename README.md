@@ -17,4 +17,8 @@ You can put these in a .env file in the repo directory as it uses dotenv (See [h
 
 ## Contributions
 
-In short, patches welcome. If you raise a PR, I'll test it and (probably) merge it
+In short, patches welcome.
+
+If you raise a PR, I'll test it, give some feedback and then (evenutally) merge it.
+
+This project aims to follow PEP8, but with a line length of 120 characters, so please make sure you fit that before raising a PR.
