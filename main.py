@@ -36,11 +36,11 @@ def get_players():
         #print(json.dumps(data, indent=4, sort_keys=True))
 
         # Extract the data from the JSON, it's a mess
-        players = [(data['members'][member]['name'],
-                    data['members'][member]['local_score'],
-                    data['members'][member]['stars'],
-                    int(data['members'][member]['last_star_ts']),
-                    data['members'][member]['completion_day_level']) for member in data['members']] 
+        players = [(member['name'],
+                    member['local_score'],
+                    member['stars'],
+                    int(member['last_star_ts']),
+                    member['completion_day_level']) for member in data['members'].values()] 
 
         # Players that are anonymous have no name in the JSON, so give them a default name "Anon"
         for i, player in enumerate(players):
@@ -160,7 +160,7 @@ async def daily(context, day : str = None):
     if context.channel.name != 'advent-of-code':
         return
     
-    print("Daily leaderboard requested for day: ", day)
+    print("Daily leaderboard requested for day:", day)
     players = get_players()
 
     # Goes through all the players checking if they have data for that day and if they do adding to players_days
