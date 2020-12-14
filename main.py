@@ -76,7 +76,6 @@ async def output_leaderboard(context, leaderboard_lst):
     await context.send(output_str)
 
 
-
 # Create the bot and specify to only look for messages starting with '!'
 bot = commands.Bot(command_prefix='!')
 
@@ -105,10 +104,10 @@ async def leaderboard(context, num_players: int=20):
     leaderboard = []
     for i, player in enumerate(players):
         leaderboard.append(PLAYER_STR_FORMAT.format(rank=i+1,
-                                           name=player[0], name_pad=max_name_len,
-                                           points=player[1], points_pad=max_points_len,
-                                           stars=player[2], stars_pad=max_stars_len,
-                                           star_time=time.strftime('%H:%M %d/%m', time.localtime(player[3]))))
+                                                    name=player[0], name_pad=max_name_len,
+                                                    points=player[1], points_pad=max_points_len,
+                                                    stars=player[2], stars_pad=max_stars_len,
+                                                    star_time=time.strftime('%H:%M %d/%m', time.localtime(player[3]))))
 
     await output_leaderboard(context, leaderboard)
 
@@ -228,10 +227,10 @@ async def daily(context, day: str=None):
         leaderboard = []
         for place, player in enumerate(final_table):
             leaderboard.append(PLAYER_STR_FORMAT.format(rank=place+1,
-                                               name=player[0], name_pad=max_name_len,
-                                               points=player[1], points_pad=max_points_len,
-                                               stars=player[3], stars_pad=max_stars_len,
-                                               star_time=time.strftime('%H:%M %d/%m', time.localtime(player[2]))))
+                                                        name=player[0], name_pad=max_name_len,
+                                                        points=player[1], points_pad=max_points_len,
+                                                        stars=player[3], stars_pad=max_stars_len,
+                                                        star_time=time.strftime('%H:%M %d/%m', time.localtime(player[2]))))
         await output_leaderboard(context, leaderboard)
 
 
