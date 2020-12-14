@@ -17,8 +17,9 @@ POLL_MINS = 15
 
 PLAYER_STR_FORMAT = '{rank:2}) {name:{name_pad}} ({points:{points_pad}}) {stars}* ({star_time})\n'
 
-
 players_cache = ()
+
+
 def get_players():
     global players_cache
     now = time.time()
@@ -33,7 +34,7 @@ def get_players():
         page = urllib.request.urlopen(req).read()
 
         data = json.loads(page)
-        #print(json.dumps(data, indent=4, sort_keys=True))
+        # print(json.dumps(data, indent=4, sort_keys=True))
 
         # Extract the data from the JSON, it's a mess
         players = [(member['name'],
@@ -41,7 +42,7 @@ def get_players():
                     member['stars'],
                     int(member['last_star_ts']),
                     member['completion_day_level'],
-                    member['id']) for member in data['members'].values()] 
+                    member['id']) for member in data['members'].values()]
 
         # Players that are anonymous have no name in the JSON, so give them a default name "Anon"
         for i, player in enumerate(players):
@@ -59,6 +60,7 @@ def get_players():
 # Create the bot and specify to only look for messages starting with '!'
 bot = commands.Bot(command_prefix='!')
 
+
 @bot.event
 async def on_ready():
     print(f'{bot.user.name} has connected to Discord and is in the following channels:')
@@ -67,7 +69,7 @@ async def on_ready():
 
 
 @bot.command(name='leaderboard', help='Responds with the current leaderboard')
-async def leaderboard(context, num_players: int = 20):
+async def leaderboard(context, num_players: int=20):
     # Only respond if used in a channel called 'advent-of-code'
     if context.channel.name != 'advent-of-code':
         return
@@ -107,7 +109,7 @@ async def rank(context, *name):
 
     print('Rank requested for: ', player_name)
     players = get_players()
-    
+
     # Get the player with the matching name (case insensitive)
     players = [(i, player) for i, player in enumerate(players) if player[0].upper() == player_name.upper()]
     if players:
@@ -152,22 +154,22 @@ async def keen(context):
 
 
 @bot.command(name='daily', help='Will give the daily leaderboard for specified day')
-async def daily(context, day : str = None):
+async def daily(context, day: str=None):
     # The default day calculation cannot be in the function default value because the default value is evaluated when the program is started, not when the function is called
     if day is None:
         # The default day is whatever day's challenge has just come out. So at 4.59AM UTC will still show previous day's leaderboard
         day = str((datetime.datetime.today() - datetime.timedelta(hours=5)).day)
-    
+
     # Only respond if used in a channel called 'advent-of-code'
     if context.channel.name != 'advent-of-code':
         return
-    
+
     print("Daily leaderboard requested for day:", day)
     players = get_players()
 
     # Goes through all the players checking if they have data for that day and if they do adding to players_days
     players_day = [player for player in players if day in player[4]]
-    
+
     # Players_day has all people who have finished one star for that day
     first_star = []
     second_star = []
@@ -178,26 +180,26 @@ async def daily(context, day : str = None):
             first_star.append((player_day[0], int(player_day[4][day]['1']['get_star_ts'])))
         if '2' in player_day[4][day]:
             second_star.append((player_day[0], int(player_day[4][day]['2']['get_star_ts'])))
-    
+
     # Sorts the two lists on timestamps
-    first_star.sort(key=lambda data : data[1])
-    second_star.sort(key=lambda data : data[1])
+    first_star.sort(key=lambda data: data[1])
+    second_star.sort(key=lambda data: data[1])
 
     final_table = []
 
     # Adds all the people from first list
     for i, player in enumerate(first_star):
-        final_table.append((player[0], (len(players) - i), player[1], 1))  
-    
+        final_table.append((player[0], (len(players) - i), player[1], 1))
+
     # Updates the list with all the people who got the second star and their score
     for i, player in enumerate(second_star):
         index = [i for i, item in enumerate(final_table) if item[0] == player[0]][0]
         to_change = final_table[index]
         final_table[index] = (to_change[0], (to_change[1] + (len(players) - i)), player[1], 2)
-    
+
     # Sorts the table primarily by score, and secondly by timestamp
-    final_table.sort(key=lambda data : data[2])
-    final_table.sort(reverse=True, key=lambda data : data[1])
+    final_table.sort(key=lambda data: data[2])
+    final_table.sort(reverse=True, key=lambda data: data[1])
 
     # Outputs data
     result = ""
@@ -205,7 +207,7 @@ async def daily(context, day : str = None):
         result = "```No Scores for this day yet"
     else:
         # Get string lengths for the format string
-        max_name_len = len(max(final_table, key=lambda t: len(t[0]))[0])     
+        max_name_len = len(max(final_table, key=lambda t: len(t[0]))[0])
         max_points_len = len(str((max(final_table, key=lambda t: len(str(t[1])))[1])))
         result = "```"
         for place, player in enumerate(final_table):
@@ -214,18 +216,18 @@ async def daily(context, day : str = None):
                                                points=player[1], points_pad=max_points_len,
                                                stars=player[3],
                                                star_time=time.strftime('%H:%M %d/%m', time.localtime(player[2])))
-                
+
             # This will output every 40 people.
             if place % 40 == 39:
                 result += "```"
                 await context.send(result)
                 result = "```"
-            
 
     # This will output the rest of the list
-    result += "```" 
+    result += "```"
     if result != "``````":
         await context.send(result)
 
 
 bot.run(TOKEN)
+
