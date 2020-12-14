@@ -15,7 +15,7 @@ COOKIE = os.getenv('AOC_COOKIE')
 # Advent Of Code request that you don't poll their API more often than once every 15 minutes
 POLL_MINS = 15
 
-PLAYER_STR_FORMAT = '{rank:2}) {name:{name_pad}} ({points:{points_pad}}) {stars}* ({star_time})\n'
+PLAYER_STR_FORMAT = '{rank:2}) {name:{name_pad}} ({points:{points_pad}}) {stars:{stars_pad}}* ({star_time})\n'
 
 players_cache = ()
 
@@ -57,6 +57,26 @@ def get_players():
     return players_cache[1]
 
 
+async def output_leaderboard(context, leaderboard_lst):
+    item_len = len(leaderboard_lst[0])
+    block_size = 1994 // item_len
+
+    tmp_leaderboard = leaderboard_lst
+
+    # While the size of the temporary leaderboard is greater than (2000 (max Discord message size) - 6 (backtick characters))
+    while (len(tmp_leaderboard) * item_len) > 1994:
+        output_str = '```'
+        output_str += ''.join(tmp_leaderboard[:block_size])
+        output_str += '```'
+        await context.send(output_str)
+        tmp_leaderboard = tmp_leaderboard[block_size:]
+    output_str = '```'
+    output_str += ''.join(tmp_leaderboard)
+    output_str += '```'
+    await context.send(output_str)
+
+
+
 # Create the bot and specify to only look for messages starting with '!'
 bot = commands.Bot(command_prefix='!')
 
@@ -79,23 +99,18 @@ async def leaderboard(context, num_players: int=20):
 
     # Get string lengths for the format string
     max_name_len = len(max(players, key=lambda t: len(t[0]))[0])
-    max_stars_len = max(players, key=lambda t: t[2])[2]
-    max_points_len = len(str((max(players, key=lambda t: len(str(t[1])))[1])))
+    max_points_len = len(str(max(players, key=lambda t: t[1])[1]))
+    max_stars_len = len(str(max(players, key=lambda t: t[2])[2]))
 
-    # Create the leaderboard string
-    result = '```'
+    leaderboard = []
     for i, player in enumerate(players):
-        result += PLAYER_STR_FORMAT.format(rank=i+1,
+        leaderboard.append(PLAYER_STR_FORMAT.format(rank=i+1,
                                            name=player[0], name_pad=max_name_len,
                                            points=player[1], points_pad=max_points_len,
-                                           stars=player[2],
-                                           star_time=time.strftime('%H:%M %d/%m', time.localtime(player[3])))
-    result += '```'
+                                           stars=player[2], stars_pad=max_stars_len,
+                                           star_time=time.strftime('%H:%M %d/%m', time.localtime(player[3]))))
 
-    # Discord messages can't be over 2000 characters, so put a limit in for that
-    if len(result) > 2000: # Can fix this by splitting up the results into ~2000 char blocks (including the ```), then calling context.send many times
-        result = 'Whoops, it looks like that leaderboard won\'t fit in one message, please reduce the number of rankings required'
-    await context.send(result)
+    await output_leaderboard(context, leaderboard)
 
 
 @bot.command(name='rank', help='Responds with the current ranking of the supplied player')
@@ -119,7 +134,7 @@ async def rank(context, *name):
         result += PLAYER_STR_FORMAT.format(rank=i+1,
                                            name=player[0], name_pad=len(player[0]),
                                            points=player[1], points_pad=len(str(player[1])),
-                                           stars=player[2],
+                                           stars=player[2], stars_pad=len(str(player[2])),
                                            star_time=time.strftime('%H:%M %d/%m', time.localtime(player[3])))
         result += '```'
     else:
@@ -147,7 +162,7 @@ async def keen(context):
     result += PLAYER_STR_FORMAT.format(rank=i+1,
                                        name=player[0], name_pad=len(player[0]),
                                        points=player[1], points_pad=len(str(player[1])),
-                                       stars=player[2],
+                                       stars=player[2], stars_pad=len(str(player[2])),
                                        star_time=time.strftime('%H:%M %d/%m', time.localtime(player[3])))
     result += '```'
     await context.send(result)
@@ -202,31 +217,22 @@ async def daily(context, day: str=None):
     final_table.sort(reverse=True, key=lambda data: data[1])
 
     # Outputs data
-    result = ""
     if not final_table:
-        result = "```No Scores for this day yet"
+        result = "```No Scores for this day yet```"
+        await context.send(result)
     else:
         # Get string lengths for the format string
         max_name_len = len(max(final_table, key=lambda t: len(t[0]))[0])
-        max_points_len = len(str((max(final_table, key=lambda t: len(str(t[1])))[1])))
-        result = "```"
+        max_points_len = len(str(max(final_table, key=lambda t: t[1])[1]))
+        max_stars_len = len(str(max(final_table, key=lambda t: t[3])[3]))
+        leaderboard = []
         for place, player in enumerate(final_table):
-            result += PLAYER_STR_FORMAT.format(rank=place+1,
+            leaderboard.append(PLAYER_STR_FORMAT.format(rank=place+1,
                                                name=player[0], name_pad=max_name_len,
                                                points=player[1], points_pad=max_points_len,
-                                               stars=player[3],
-                                               star_time=time.strftime('%H:%M %d/%m', time.localtime(player[2])))
-
-            # This will output every 40 people.
-            if place % 40 == 39:
-                result += "```"
-                await context.send(result)
-                result = "```"
-
-    # This will output the rest of the list
-    result += "```"
-    if result != "``````":
-        await context.send(result)
+                                               stars=player[3], stars_pad=max_stars_len,
+                                               star_time=time.strftime('%H:%M %d/%m', time.localtime(player[2]))))
+        await output_leaderboard(context, leaderboard)
 
 
 bot.run(TOKEN)
