@@ -50,6 +50,9 @@ def get_players():
                 anon_name = "(anonymous user #" + player[5] + ")"
                 players[i] = (anon_name, player[1], player[2], player[3], player[4], player[5])
 
+        # Sort the table primarily by score, secondly by stars and finally by timestamp
+        players.sort(key=lambda tup: tup[3])
+        players.sort(key=lambda tup: tup[2], reverse=True)
         players.sort(key=lambda tup: tup[1], reverse=True)
         players_cache = (now, players)
 
