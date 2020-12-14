@@ -195,8 +195,9 @@ async def daily(context, day : str = None):
         to_change = final_table[index]
         final_table[index] = (to_change[0], (to_change[1] + (len(players) - i)), player[1], 2)
     
-    # Sorts the table
-    final_table.sort(reverse=True,key=lambda data : data[1])
+    # Sorts the table primarily by score, and secondly by timestamp
+    final_table.sort(key=lambda data : data[2])
+    final_table.sort(reverse=True, key=lambda data : data[1])
 
     # Outputs data
     result = ""
