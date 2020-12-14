@@ -15,6 +15,9 @@ COOKIE = os.getenv('AOC_COOKIE')
 # Advent Of Code request that you don't poll their API more often than once every 15 minutes
 POLL_MINS = 15
 
+# Discord messages are limited to 2000 characters. This also includes space for 6 '`' characters for a code block
+MAX_MESSAGE_LEN = 2000 - 6
+
 PLAYER_STR_FORMAT = '{rank:2}) {name:{name_pad}} ({points:{points_pad}}) {stars:{stars_pad}}* ({star_time})\n'
 
 players_cache = ()
@@ -62,12 +65,11 @@ def get_players():
 
 async def output_leaderboard(context, leaderboard_lst):
     item_len = len(leaderboard_lst[0])
-    block_size = 1994 // item_len
+    block_size = MAX_MESSAGE_LEN // item_len
 
     tmp_leaderboard = leaderboard_lst
 
-    # While the size of the temporary leaderboard is greater than (2000 (max Discord message size) - 6 (backtick characters))
-    while (len(tmp_leaderboard) * item_len) > 1994:
+    while (len(tmp_leaderboard) * item_len) > MAX_MESSAGE_LEN:
         output_str = '```'
         output_str += ''.join(tmp_leaderboard[:block_size])
         output_str += '```'
@@ -91,7 +93,7 @@ async def on_ready():
 
 
 @bot.command(name='leaderboard', help='Responds with the current leaderboard')
-async def leaderboard(context, num_players: int=20):
+async def leaderboard(context, num_players: int = 20):
     # Only respond if used in a channel called 'advent-of-code'
     if context.channel.name != 'advent-of-code':
         return
@@ -171,10 +173,12 @@ async def keen(context):
 
 
 @bot.command(name='daily', help='Will give the daily leaderboard for specified day')
-async def daily(context, day: str=None):
-    # The default day calculation cannot be in the function default value because the default value is evaluated when the program is started, not when the function is called
+async def daily(context, day: str = None):
+    # The default day calculation cannot be in the function default value because the default
+    # value is evaluated when the program is started, not when the function is called
     if day is None:
-        # The default day is whatever day's challenge has just come out. So at 4.59AM UTC will still show previous day's leaderboard
+        # The default day is whatever day's challenge has just come out
+        # So at 4.59AM UTC it will still show previous day's leaderboard
         day = str((datetime.datetime.today() - datetime.timedelta(hours=5)).day)
 
     # Only respond if used in a channel called 'advent-of-code'
@@ -233,9 +237,9 @@ async def daily(context, day: str=None):
                                                         name=player[0], name_pad=max_name_len,
                                                         points=player[1], points_pad=max_points_len,
                                                         stars=player[3], stars_pad=max_stars_len,
-                                                        star_time=time.strftime('%H:%M %d/%m', time.localtime(player[2]))))
+                                                        star_time=time.strftime('%H:%M %d/%m',
+                                                                                time.localtime(player[2]))))
         await output_leaderboard(context, leaderboard)
 
 
 bot.run(TOKEN)
-
