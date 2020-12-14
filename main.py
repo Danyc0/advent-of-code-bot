@@ -40,12 +40,14 @@ def get_players():
                     member['local_score'],
                     member['stars'],
                     int(member['last_star_ts']),
-                    member['completion_day_level']) for member in data['members'].values()] 
+                    member['completion_day_level'],
+                    member['id']) for member in data['members'].values()] 
 
         # Players that are anonymous have no name in the JSON, so give them a default name "Anon"
         for i, player in enumerate(players):
             if not player[0]:
-                players[i] = ('Anon', player[1], player[2], player[3], player[4])
+                anon_name = "(anonymous user #" + player[5] + ")"
+                players[i] = (anon_name, player[1], player[2], player[3], player[4], player[5])
 
         players.sort(key=lambda tup: tup[1], reverse=True)
         players_cache = (now, players)
