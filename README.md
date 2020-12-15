@@ -1,4 +1,4 @@
-# advent-of-code-bot
+# advent-of-code-bot [![Latest release](https://travis-ci.com/Danyc0/advent-of-code-bot.svg?branch=main)](https://travis-ci.com/Danyc0/advent-of-code-bot)
 A simple Discord bot for Advent Of Code
 
 ## Dependencies
@@ -21,4 +21,4 @@ In short, patches welcome.
 
 If you raise a PR, I'll test it, give some feedback and then (evenutally) merge it.
 
-This project aims to follow PEP8, but with a line length of 120 characters, and [PEP8 Speaks](https://github.com/OrkoHunter/pep8speaks/) will perk up in the comments of your PR if you go against this.
+This project aims to follow PEP8, but with a line length of 120 characters, and [PEP8 Speaks](https://github.com/OrkoHunter/pep8speaks/) and [Travis CI](https://travis-ci.com/Danyc0/advent-of-code-bot) will perk up in the comments of your PR if you go against this.
