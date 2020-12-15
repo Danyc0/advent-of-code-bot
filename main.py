@@ -50,7 +50,7 @@ def get_players():
         # Players that are anonymous have no name in the JSON, so give them a default name "Anon"
         for i, player in enumerate(players):
             if not player[0]:
-                anon_name = "(anonymous user #" + player[5] + ")"
+                anon_name = "anon #" + player[5]
                 players[i] = (anon_name, player[1], player[2], player[3], player[4], player[5])
 
         # Sort the table primarily by score, secondly by stars and finally by timestamp
