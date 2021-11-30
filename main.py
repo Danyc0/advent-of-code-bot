@@ -20,6 +20,8 @@ MAX_MESSAGE_LEN = 2000 - 6
 
 PLAYER_STR_FORMAT = '{rank:2}) {name:{name_pad}} ({points:{points_pad}}) {stars:{stars_pad}}* ({star_time})\n'
 
+CHANNEL_NAME = 'advent-of-code'
+
 players_cache = ()
 
 
@@ -94,8 +96,8 @@ async def on_ready():
 
 @bot.command(name='leaderboard', help='Responds with the current leaderboard')
 async def leaderboard(context, num_players: int = 20):
-    # Only respond if used in a channel called 'advent-of-code'
-    if context.channel.name != 'advent-of-code':
+    # Only respond if used in a channel containing CHANNEL_NAME
+    if CHANNEL_NAME not in context.channel.name:
         return
 
     print('Leaderboard requested')
@@ -119,8 +121,8 @@ async def leaderboard(context, num_players: int = 20):
 
 @bot.command(name='rank', help='Responds with the current ranking of the supplied player')
 async def rank(context, *name):
-    # Only respond if used in a channel called 'advent-of-code'
-    if context.channel.name != 'advent-of-code':
+    # Only respond if used in a channel containing CHANNEL_NAME
+    if CHANNEL_NAME not in context.channel.name:
         return
 
     # Join together all passed parameters with a space, this allows users to enter names with spaces
@@ -148,8 +150,8 @@ async def rank(context, *name):
 
 @bot.command(name='keen', help='Responds with today\'s keenest bean')
 async def keen(context):
-    # Only respond if used in a channel called 'advent-of-code'
-    if context.channel.name != 'advent-of-code':
+    # Only respond if used in a channel containing CHANNEL_NAME
+    if CHANNEL_NAME not in context.channel.name:
         return
     print('Keenest bean requested')
 
@@ -181,8 +183,8 @@ async def daily(context, day: str = None):
         # So at 4.59AM UTC it will still show previous day's leaderboard
         day = str((datetime.datetime.today() - datetime.timedelta(hours=5)).day)
 
-    # Only respond if used in a channel called 'advent-of-code'
-    if context.channel.name != 'advent-of-code':
+    # Only respond if used in a channel containing CHANNEL_NAME
+    if CHANNEL_NAME not in context.channel.name:
         return
 
     print("Daily leaderboard requested for day:", day)
