@@ -19,7 +19,7 @@ POLL_MINS = 15
 MAX_MESSAGE_LEN = 2000 - 6
 
 PLAYER_STR_FORMAT = '{rank:2}) {name:{name_pad}} ({points:{points_pad}}) {stars:{stars_pad}}* ({star_time})\n'
-PLAYER_STR_FORMAT_2 = '{rank:2}) {name:{name_pad}} {stars:{stars_pad}}* ({star_time})\n'
+PLAYER_STR_FORMAT_NOPOINTS = '{rank:2}) {name:{name_pad}} {stars:{stars_pad}}* ({star_time})\n'
 
 CHANNEL_NAME = 'advent-of-code'
 
@@ -296,7 +296,7 @@ async def daily(context, day: str = None):
         max_stars_len = len(str(max(final_table, key=lambda t: t[3])[3]))
         leaderboard = []
         for place, player in enumerate(final_table):
-            leaderboard.append(PLAYER_STR_FORMAT_2.format(rank=place+1,
+            leaderboard.append(PLAYER_STR_FORMAT_NOPOINTS.format(rank=place+1,
                                                         name=player[0], name_pad=max_name_len,
                                                         points=player[1], points_pad=max_points_len,
                                                         stars=player[3], stars_pad=max_stars_len,
