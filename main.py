@@ -19,6 +19,7 @@ POLL_MINS = 15
 MAX_MESSAGE_LEN = 2000 - 6
 
 PLAYER_STR_FORMAT = '{rank:2}) {name:{name_pad}} ({points:{points_pad}}) {stars:{stars_pad}}* ({star_time})\n'
+PLAYER_STR_FORMAT_NOPOINTS = '{rank:2}) {name:{name_pad}} {stars:{stars_pad}}* ({star_time})\n'
 
 CHANNEL_NAME = 'advent-of-code'
 
@@ -241,6 +242,67 @@ async def daily(context, day: str = None):
                                                         stars=player[3], stars_pad=max_stars_len,
                                                         star_time=time.strftime('%H:%M %d/%m',
                                                                                 time.localtime(player[2]))))
+        await output_leaderboard(context, leaderboard)
+
+
+@bot.command(name='stars', help='Will give the time of completion of each star for specified day')
+async def daily(context, day: str = None):
+    # The default day calculation cannot be in the function default value because the default
+    # value is evaluated when the program is started, not when the function is called
+    if day is None:
+        # The default day is whatever day's challenge has just come out
+        # So at 4.59AM UTC it will still show previous day's leaderboard
+        day = str((datetime.datetime.today() - datetime.timedelta(hours=5)).day)
+
+    # Only respond if used in a channel containing CHANNEL_NAME
+    if CHANNEL_NAME not in context.channel.name:
+        return
+
+    print("Star time leaderboard requested for day:", day)
+    players = get_players()
+
+    # Goes through all the players checking if they have data for that day and if they do adding to players_days
+    players_day = [player for player in players if day in player[4]]
+
+    # Players_day has all people who have finished one star for that day
+    stars = []
+
+    # Adds all stars achieved to the stars list
+    for player_day in players_day:
+        if '1' in player_day[4][day]:
+            stars.append((player_day[0], int(player_day[4][day]['1']['get_star_ts']), '1'))
+        if '2' in player_day[4][day]:
+            stars.append((player_day[0], int(player_day[4][day]['2']['get_star_ts']), '2'))
+
+    # Sorts the list on timestamps
+    stars.sort(key=lambda data: data[1])
+
+    final_table = []
+
+    # Adds all the stars to the final list
+    for i, player in enumerate(stars):
+        final_table.append((player[0], (len(stars) - i), player[1], player[2]))
+
+    # Sorts the table by timestamp
+    final_table.sort(key=lambda data: data[2])
+
+    # Outputs data
+    if not final_table:
+        result = "```No Scores for this day yet```"
+        await context.send(result)
+    else:
+        # Get string lengths for the format string
+        max_name_len = len(max(final_table, key=lambda t: len(t[0]))[0])
+        max_points_len = len(str(max(final_table, key=lambda t: t[1])[1]))
+        max_stars_len = len(str(max(final_table, key=lambda t: t[3])[3]))
+        leaderboard = []
+        for place, player in enumerate(final_table):
+            leaderboard.append(PLAYER_STR_FORMAT_NOPOINTS.format(rank=place+1,
+                                                                 name=player[0], name_pad=max_name_len,
+                                                                 points=player[1], points_pad=max_points_len,
+                                                                 stars=player[3], stars_pad=max_stars_len,
+                                                                 star_time=time.strftime('%H:%M %d/%m',
+                                                                                         time.localtime(player[2]))))
         await output_leaderboard(context, leaderboard)
 
 
